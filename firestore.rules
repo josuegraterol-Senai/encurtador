@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /links/{linkId} {
+      // Permite que qualquer um leia um link para redirecionamento
+      allow read: if true;
+      
+      // Permite que usuários autenticados criem links
+      allow create: if request.auth != null;
+      
+      // Permite que qualquer um incremente o contador de cliques
+      allow update: if (request.auth != null && request.auth.uid == resource.data.userId) || 
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clicks']));
+      
+      // Permite que apenas o dono exclua o link
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+  }
+}
